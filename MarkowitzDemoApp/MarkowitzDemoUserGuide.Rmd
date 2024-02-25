@@ -1,0 +1,122 @@
+---
+title: "ReadMe: Markovitz Demo User Guide"
+author: "ThinkersPark"
+date: "2024-02-18"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+This app provides a Markowitz portfolio optimisation demo.
+
+It uses historical information of two stocks: 
+- Walmart - a stock with lower annual return and lower volatility (i.e. lower risk), and 
+- Apple - a stock with higher annual return and higher volatility (i.e. higher risk). 
+
+Historical stock returns are sourced from Yahoo Finance using quantmod library functions, 
+and displayed in the app to illustrate low risk vs. high risk stock dynamics.
+
+As an input, the app asks the user to provide three parameters, with default values: 
+ (1) Risk free rate, (2) Target return, and (3) Target volatility.
+
+As output, the app displays the efficient frontier, the capital market line, and multiple portfolios.
+- Each portfolio is represented on the output plot as a an expected return and volatility point
+- Asset weights (including the risk free asset), expected return and volatility ofeach portfolio is displayed in the output table.
+
+App uses quantmod library for stock information, and shiny library for app build. Full ui & server code available here:
+
+https://github.com/ThinkersPark/ShinyAppPitchProject
+
+## Layout
+
+The app consists of four sections:
+
+1. Top right: The input section. Here, the user is asked to provide the three input parameters 
+(default values initially appear on screen). Once the "Submit" button is pressed, the outputs are re-run for a given parameter combination.
+
+2. Top left: The stock chart section. This chart illustrates low risk vs. high risk stock dynamics. It is not reactive/ does not change with inputs.
+
+This is how the the top sections look:
+
+```{r Markowitz_Input, echo=FALSE, fig.width = c(3,6), fig.height=6, fig.show="hold", fig.align="centre"}
+knitr::include_graphics(c("Images/ParamsSelect.png", "Images/StockChart.png"))
+```
+
+3. Bottom right: The portfolio output section. This section consists of a table displaying various portfolio characteristics - their asset weights, expected returns and volatilities. Sharpe ratio is displayed on top. Portfolio characteristics are reactive/ change with inputs.
+
+4. Bottom left: The plot output section, with Markowitz efficient frontier and the Capital Market Line (CML). The risk free rate level is also highlighted on the plot, as well as various target portfolios (combinations of expected return and volatility). The plot is reactive/ it changes with inputs.
+
+This is how the the bottom sections look:
+
+```{r Markowitz_Output, echo=FALSE, fig.width = c(3,6), fig.height=6, fig.show="hold", fig.align="centre"}
+knitr::include_graphics(c("Images/PortfoliosSnapMaxi.png", "Images/MarkowitzFrontier.png"))
+```
+
+## Inputs
+
+The three input parameters are expressed on annual basis (per annum/ p.a.). Accordingly, an annual investment time horizon is assumed.
+
+1. Risk free rate represents the investor's borrowing (loan)/ lending (deposit) rate. In this simple demo, this is a single interest rate parameter, even though in practice these rates are usually different.
+
+2. Investor's target return - the app will find a portfolio with this level of expected return, and with minimum volatility.
+
+- First, it is going to look for such a portfolio across the efficient frontier (without borrowing/ lending). 
+
+- Second, it is going to look for such a portfolio on the CML (with borrowing/ lending), typically shifting some of the portfolio weights towards the risk-free asset (deposit) and reducing volatility. 
+
+- If the target return is above the frontier maximum, then the target return portfolio will default to a CML portfolio - typically this means borrowing is required to purchase more stock to attain the target return level.
+
+3. Investor's target volatility - the app will find a portfolio with this level of volatility, and with maximum expected return. Similar mechanics as above:
+
+- First, it is going to look for such a portfolio across the efficient frontier (without borrowing/ lending). 
+
+- Second, it is going to look for such a portfolio on the CML (with borrowing/ lending), typically shifting some of the portfolio weights away from the risk-free asset (loan) and increasing return. 
+
+- If the target volatility is below the frontier minimum, then the target volatility portfolio will default to a CML portfolio - typically this means risk free asset deposit is required to attain the target volatility level.
+
+Press the "Submit" button to see the output for new parameter values.
+
+## Outputs: 
+
+### The plot on the right: Markowitz efficient frontier & CML
+
+The frontier displays "efficient portfolios" - those with maximum return at a given target volatility level, and minimum volatility at a given target return level. Markowitz theory assumes that this is what a rational investor would want.
+
+In this demo, the stock market comprises only two stocks: Walmart (low risk/ low return), and Apple (high risk/ high return). In this case, gradually increasing the weight of the high risk stock and decreasing the weight of the low risk stock, results in a higher expected return and higher volatility. So, the efficient frontier parabola depicts expected returns/ volatilities of investments into such combinations of stocks.
+
+The CML line illustrates achievable returns/ volatilities if the risk free asset enters into the mix - with a guaranteed small return, and no volatility - providing the investor with an opportunity to lend (deposit) or borrow (loan). The risk free rate is also displayed on the plot, and it is the intercept of the CML line.
+
+The slope of the CML line is known as Sharpe ratio, i.e. the return above risk free rate per additional unit of volatility. Sharpe ratio is calculated as the maximum (optimal) expected return above risk free rate per unit of volatility, across all frontier portfolios (the portfolio with this optimal value is called the tangency portfolio, please see the next section). This calculation requires the risk free rate input, and Sharpe ratio will change with different input values.
+
+The CML line equation can be written as:
+
+$R_{portfolio} = R_{risk-free} + (R_{stockmarket}-R_{risk-free})*((S_{portfolio})*/S_{stockmarket})$, where:
+
+- $R_{portfolio}$/ $S_{portfolio}$ is the expected return/ resp. volatility of the overall portfolio (with stocks AND risk free asset),
+- $R_{risk-free}$ is the risk free rate,
+- $R_{stockmarket}$/ $S_{stockmarket}$ is the expected return/ resp. volatility of the stock market portfolio (stock only),
+- $(R_{stockmarket}-R_{risk-free})/S_{stockmarket}$ is the Sharpe ratio.
+
+Various portfolios (combinations of expected returns and volatilities) are also displayed on the plot. 
+
+### The numbers on the left: Portfolio characteristics
+
+The Sharpe ratio is displayed on top.
+
+The table underneath displays, for various portfolios displayed on the output plot, the weights allocated to each stock and to the risk free asset (as applicable), the expected return and the volatility.
+
+- Minimum variance portfolio is a stock market (stock only) portfolio with minimum volatility. Noting that in such such a portfolio, the lower volatility stock weight does not have to be 100% due to correlation effect between the stocks.
+
+- Tangency portfolio is a stock market (stock only) portfolio with maximum (optimal) expected return above risk free rate per unit of volatility. This is how Sharpe ratio is calculated.
+
+- Target portfolios on the frontier are those without borrowing/ lending, with mechanics as explained in the input section.
+
+- Target portfolios on the CML are those with borrowing/ lending (at risk free rate). In practice, this means some portfolio weight are allocated to the risk free asset. Positive weight - as deposit to reduce volatility; negative weight - as loan to purchase more stock and increase return.
+
+## How to use
+
+Play around with the inputs. The app shows how portfolio weights get shifted between the stocks and the risk free asset  (negative weight means borrowing). Enjoy!
